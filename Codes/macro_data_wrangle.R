@@ -41,10 +41,13 @@ for (file in csv_files) {
   # Add the wide dataframe to the wide_dfs list
   wide_dfs[[paste0(base_name, "_wide")]] <- df_wide
 }
-
+rm(df_wide)
 #====================MAKE A TAXA SHEET=====================
 
-write_xlsx(list("Taxa" = bind_rows(taxa_list)), "Data/Combined NEON taxa.xlsx") #write taxa sheet for information later
+combined_taxa <- bind_rows(taxa_list) %>%
+  distinct(acceptedTaxonID, scientificName, .keep_all = TRUE)
+
+write_xlsx(list("Taxa" = combined_taxa), "Data/Combined_NEON_taxa.xlsx")#write taxa sheet for information later
 
 #================COMBINE DATA FOR ORDINATION==========
 
