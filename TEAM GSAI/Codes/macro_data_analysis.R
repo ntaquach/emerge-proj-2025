@@ -5,6 +5,7 @@ library(vegan)
 library(ggplot2)
 library(tidyverse)
 library(moments) #load moments package to check for kurtosis and skewness
+library(writexl)
 
 rm(list = ls())
 
@@ -112,3 +113,34 @@ neon_biplot <- neon_macro_graph +
 neon_biplot
 #=========
 ggsave("Figures/NEON NMDS Biplot.png",neon_biplot,width=9,height=5)
+
+
+
+#PCoA analysis ================================
+
+# Compute Bray-Curtis dissimilarity and run PCoA
+bray_dist <- vegdist(neon_macro_only, method = "bray")
+pcoa_macro <- cmdscale(bray_dist, eig = TRUE, k = 2)
+
+# Calculate percent variance explained by axes
+var_explained <- round(100 * pcoa_macro$eig / sum(pcoa_macro$eig), 1)
+
+# Create a PCoA dataframe for ggplot
+pcoa_df <- data.frame(SiteID = neon_macro_site$siteID,
+                      SiteType = neon_macro_site$siteType,
+                      Domain = neon_macro_site$domain,
+                      PC1 = pcoa_macro$points[, 1],
+                      PC2 = pcoa_macro$points[, 2])
+
+macro_pcoa <- ggplot(pcoa_df, aes(x = PC1, y = PC2, color = Domain, shape = SiteType)) +
+  geom_point(size = 3, alpha = 0.8) +
+  geom_text(aes(label = SiteID), size = 3, vjust = -0.5, show.legend = FALSE) +
+  labs(title = "",
+       x = paste0("PCoA Axis 1 (", var_explained[1], "%)"),
+       y = paste0("PCoA Axis 2 (", var_explained[2], "%)"),
+       color = "DomainID") +
+  anh_theme()
+
+
+#=========
+ggsave("Figures/NEON PCoA Plot.png",macro_pcoa,width=9,height=5)
